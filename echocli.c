@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv){
 	int sockfd, n;
-	char recvline[MAXLINE+1];
+	char recvline[MAXLINE + 1], sendline[MAXLINE + 1];
 	struct sockaddr_in servaddr;
 
 	if (argc < 3){
@@ -23,16 +23,18 @@ int main(int argc, char **argv){
 	}
 
 	if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
-			err_sys("connect error");
+        err_sys("connect error");
 
-	while ( (n = read(sockfd, recvline, MAXLINE)) > 0) {
-			recvline[n] = 0;        /* null terminate */
-			if (fputs(recvline, stdout) == EOF)
-					err_sys("fputs error");
-	}
-	if (n < 0)
-			err_sys("read error");
 
-	exit(0);
+
+    while(Fgets(sendline, MAXLINE, stdin) != NULL){
+        Write(sockfd, sendline, strlen(sendline));
+
+        if (Readline(sockfd, recvline, MAXLINE) == 0)
+            err_sys("Server Terminated");
+        Fputs(recvline, stdout);
+    }
+
+	return 0;
 
 }

@@ -1,7 +1,7 @@
 
 CC = gcc
 
-LIBS = -lresolv  -lpthread\
+LIBS = -lresolv -lpthread\
 	/home/bhavesh/Desktop/CSE533/hw1/libs/unpv13e/libunp.a\
 	
 FLAGS = -g -O2
