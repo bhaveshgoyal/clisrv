@@ -24,20 +24,21 @@ int main(int argc, char **argv){
         print_err("Illegal usage: incorrect number of arguments");
     }
 
-    if (!is_ip(argv[1])){
-        if ((he = gethostbyname(argv[1])) == NULL)
-            print_err("Could Not resolve hostname");
-        else{
-            printf("Host by name: %s\n", he->h_name);
-        }
-    }
-    else
+    if (is_ip(argv[1])){
         if (inet_pton(AF_INET, argv[1], &inaddr) == 0)
             print_err("Could not resolve ip");
         else{
             he = gethostbyaddr(&inaddr, sizeof(inaddr), AF_INET);
             printf("Host by addr: %s\n", he->h_name);
         }
+    }
+    else{
+        if ((he = gethostbyname(argv[1])) == NULL)
+            print_err("Could Not resolve hostname");
+        else{
+            printf("Host by name: %s\n", he->h_name);
+        }
+    }
 
     while(1){
         scanf("%s", command);
