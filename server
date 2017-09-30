@@ -1,0 +1,3 @@
+make server
+export PATH="./bin/:$PATH"
+./bin/srv $1 $2

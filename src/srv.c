@@ -5,7 +5,13 @@
 #define ANSI_COLOR_RESET   "\x1b[0m\n\0"
 #define MAX_CLIENTS 50
 #define HOSTNAME_SIZE 20
-
+void sigpipe_handler(int signal){
+    pid_t pid;
+    int status;
+    while((pid = waitpid(-1, &status, WNOHANG)) > 0)
+        printf("Server thread %d terminated: SIGPIPE received", pid);
+    return;
+}
 void *echo_handler(void* fd){
     int echo_conn = *(int *)fd;
 
@@ -112,15 +118,17 @@ int main(int argc, char **argv){
             err_sys("Invalid Socket Select");
         if (FD_ISSET(time_master, &readfs)){
             time_conn = Accept(time_master, (SA *)NULL, NULL);
+            printf("Echo client connected: ");
             pthread_t tid;
-            signal(SIGPIPE, SIG_IGN);
+            Signal(SIGPIPE, sigpipe_handler);
             if (pthread_create(&tid, NULL, time_handler, (void*)&time_conn) < 0)
-                printf("Could Not Create echo service thread");
+                printf("Could Not Create time service thread");
             pthread_detach(tid);
         }
         if (FD_ISSET(echo_master, &readfs)){
             echo_conn = Accept(echo_master, (SA *)NULL, NULL);
             pthread_t tid;
+            Signal(SIGPIPE, sigpipe_handler);
             if (pthread_create(&tid, NULL, echo_handler, (void*)&echo_conn) < 0)
                 printf("Could Not Create echo service thread");
             pthread_detach(tid);
