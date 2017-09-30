@@ -14,19 +14,19 @@ all: client server echoclient
 
 server:
 	rm -rf server
-	${CC} ${CFLAGS} -o bin/server server.c ${LIBS}
+	${CC} ${CFLAGS} -o bin/server src/server.c ${LIBS}
 
 client:
 	rm -rf client
-	${CC} ${CFLAGS} -v -o bin/client client.c ${LIBS}
+	${CC} ${CFLAGS} -v -o bin/client src/client.c ${LIBS}
 
 echoclient:
 	rm -rf echocli
-	${CC} ${CFLAGS} -v -o bin/echocli echocli.c ${LIBS}
+	${CC} ${CFLAGS} -v -o bin/echocli src/echocli.c ${LIBS}
 
 timeclient:
 	rm -rf timecli
-	${CC} ${CFLAGS} -v -o bin/timecli timecli.c ${LIBS}
+	${CC} ${CFLAGS} -v -o bin/timecli src/timecli.c ${LIBS}
 
 clean:
 	rm -rv bin/*
