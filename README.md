@@ -1,7 +1,7 @@
 # Echo-Time Client Server System
 TCP socket client/server echo program using I/O multiplexing, child processes and threads. 
 
-######To run:
+###### To run:
 
 Clone entire repo to your local directory
 ```
