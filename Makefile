@@ -8,27 +8,24 @@ FLAGS = -g -O2
 
 CFLAGS = ${FLAGS} -I/home/bhavesh/Desktop/CSE533/hw1/libs/unpv13e/lib
 
-all: client server echoclient
-	#timeclient
+all: cli srv echocli timecli
 
 
-server:
-	rm -rf server
-	${CC} ${CFLAGS} -o bin/server src/server.c ${LIBS}
+srv:
+	rm -rf ./bin/srv
+	${CC} ${CFLAGS} -o bin/srv src/srv.c ${LIBS}
 
-client:
-	rm -rf client
-	${CC} ${CFLAGS} -v -o bin/client src/client.c ${LIBS}
+cli:
+	rm -rf ./bin/cli
+	${CC} ${CFLAGS} -v -o bin/cli src/cli.c ${LIBS}
 
-echoclient:
-	rm -rf echocli
+echocli:
+	rm -rf ./bin/echocli
 	${CC} ${CFLAGS} -v -o bin/echocli src/echocli.c ${LIBS}
 
-timeclient:
-	rm -rf timecli
+timecli:
+	rm -rf ./bin/timecli
 	${CC} ${CFLAGS} -v -o bin/timecli src/timecli.c ${LIBS}
 
 clean:
 	rm -rv bin/*
-	#timecli
-
