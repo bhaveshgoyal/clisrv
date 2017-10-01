@@ -5,6 +5,8 @@ int main(int argc, char **argv){
 	int sockfd, n;
 	char recvline[MAXLINE + 1], sendline[MAXLINE + 1];
 	struct sockaddr_in servaddr;
+    fd_set readfs;
+
 
 	if (argc < 3){
 		err_sys("Illegal usage: ./echocli <IP ADDRESS> <PORT>\n");
@@ -20,21 +22,35 @@ int main(int argc, char **argv){
 	
     if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) < 0){
 			err_sys("Can't translate Network IPs");
-	}
-
-	if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
-        err_sys("connect error");
-
-
-
-    while(Fgets(sendline, MAXLINE, stdin) != NULL){
-        Write(sockfd, sendline, strlen(sendline));
-
-        if (Readline(sockfd, recvline, MAXLINE) == 0)
-            err_sys("Server Terminated");
-        Fputs(recvline, stdout);
     }
 
-	return 0;
+    if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
+        err_sys("connect error");
+
+    FD_ZERO(&readfs);
+    FD_SET(sockfd, &readfs);
+    FD_SET(STDIN_FILENO, &readfs);
+    int maxfd = max(sockfd, STDIN_FILENO);
+    while(1){
+        FD_ZERO(&readfs);
+        FD_SET(sockfd, &readfs);
+        FD_SET(STDIN_FILENO, &readfs);
+        int status = select(maxfd+1, &readfs, NULL, NULL, NULL);
+        if (status < 0)
+            err_sys("Invalid Select");
+        if (FD_ISSET(sockfd, &readfs)){
+            if (Readline(sockfd, recvline, MAXLINE) == 0){
+                printf("Server connection closed. Host went down\n");
+                break;
+            }
+            Fputs(recvline, stdout);
+        }
+        else if (FD_ISSET(STDIN_FILENO, &readfs)){
+            Fgets(sendline, MAXLINE, stdin);
+            Write(sockfd, sendline, strlen(sendline));
+        }
+    }
+    close(sockfd);
+    return 0;
 
 }

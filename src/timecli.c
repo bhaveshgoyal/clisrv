@@ -1,6 +1,9 @@
 #include <unp.h>
 #include <stdio.h>
-
+void handler(int sig){
+    // Handled
+    return;
+}
 int main(int argc, char **argv){
 	int sockfd, n;
 	char recvline[MAXLINE + 1];
@@ -25,12 +28,15 @@ int main(int argc, char **argv){
 	if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
         err_sys("connect error");
 
-
+    Signal(SIGUSR1, handler);
+    raise(SIGUSR1);
     while((n = read(sockfd, recvline, MAXLINE)) > 0){
       //  recvline[n] = 0;
         fputs(recvline, stdout);
     }
-    printf("Connection Closed");
-	return 0;
+    printf("Server connection closed. Host went down\n");
+    close(sockfd);
+	fflush(stdout);
+    return 0;
 
 }

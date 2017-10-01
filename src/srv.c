@@ -60,8 +60,9 @@ void *time_handler(void *fd){
     while(1){
         ticks = time(NULL);
         snprintf(buf, sizeof(buf), "%.24s\r\n", ctime(&ticks));
-        if (write(time_conn, buf, strlen(buf)) < 0)
+        if (write(time_conn, buf, strlen(buf)) < 0){
             break;
+        }
         sleep(5);
     }
     printf("Time Client %s termination: EPIPE error detected\n", ip);
@@ -118,19 +119,38 @@ int main(int argc, char **argv){
             err_sys("Invalid Socket Select");
         if (FD_ISSET(time_master, &readfs)){
             time_conn = Accept(time_master, (SA *)NULL, NULL);
-            printf("Echo client connected: ");
+            struct sockaddr_in sockaddr;
+            socklen_t len = sizeof(sockaddr);
+
+            getpeername(time_conn, (struct sockaddr*)&sockaddr, &len);
+            char ip[HOSTNAME_SIZE];
+            inet_ntop(AF_INET, &sockaddr.sin_addr, ip, sizeof(ip));
+            printf("New Time client connection established: %s\n", ip);
+            fflush(stdout);
             pthread_t tid;
             Signal(SIGPIPE, sigpipe_handler);
-            if (pthread_create(&tid, NULL, time_handler, (void*)&time_conn) < 0)
+            if (pthread_create(&tid, NULL, time_handler, (void*)&time_conn) < 0){
                 printf("Could Not Create time service thread");
+                continue;
+            }
             pthread_detach(tid);
         }
         if (FD_ISSET(echo_master, &readfs)){
             echo_conn = Accept(echo_master, (SA *)NULL, NULL);
+            struct sockaddr_in sockaddr;
+            socklen_t len = sizeof(sockaddr);
+
+            getpeername(echo_conn, (struct sockaddr*)&sockaddr, &len);
+            char ip[HOSTNAME_SIZE];
+            inet_ntop(AF_INET, &sockaddr.sin_addr, ip, sizeof(ip));
+            printf("New Echo client connection established: %s\n", ip);
+            fflush(stdout);
             pthread_t tid;
             Signal(SIGPIPE, sigpipe_handler);
-            if (pthread_create(&tid, NULL, echo_handler, (void*)&echo_conn) < 0)
+            if (pthread_create(&tid, NULL, echo_handler, (void*)&echo_conn) < 0){
                 printf("Could Not Create echo service thread");
+                continue;
+            }
             pthread_detach(tid);
         }
     }

@@ -17,6 +17,11 @@ void sig_handler(int sig)
     printf("$> ");
     return;
 }
+void  SIGhandler(int sig)
+{
+         printf("\nReceived a SIGUSR1");
+              exit(0);
+}
 void print_err(char *s){
     printf("%s\n", s);
     exit(1);
@@ -29,6 +34,7 @@ int main(int argc, char **argv){
     struct in_addr *inaddr;
     pid_t pid;
     Signal(SIGCHLD, sig_handler);
+    signal(SIGUSR1, SIGhandler);
     if (argc < 4){
         print_err("Illegal usage: incorrect number of arguments");
     }
