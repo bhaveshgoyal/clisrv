@@ -1,9 +1,21 @@
 #include <stdio.h>
 #include <unp.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define COMM_LEN 100
-
+void monitor_child(void *arg){
+    int fd = *(int*)arg;
+    ssize_t n;
+    char buff[1024] = {0};
+    while((n = read(fd, buff, sizeof(buff))) > 0)
+    {
+        if (write(STDOUT_FILENO, buff, n) < 0)
+            printf("error writing to stdout");
+        memset(buff, 0, sizeof(buff));
+    }
+    return;
+}
 int is_ip(char *ipstring){
     struct sockaddr_in sa;
     return (inet_pton(AF_INET, ipstring, &(sa.sin_addr)) != 0);
@@ -34,7 +46,6 @@ int main(int argc, char **argv){
     struct in_addr *inaddr;
     pid_t pid;
     Signal(SIGCHLD, sig_handler);
-    signal(SIGUSR1, SIGhandler);
     if (argc < 4){
         print_err("Illegal usage: incorrect number of arguments");
     }
@@ -54,31 +65,68 @@ int main(int argc, char **argv){
             printf("Host by name: %s\n", he->h_name);
         }
     }
+
+    
     char * s = getenv("DISPLAY");
     setenv("DISPLAY", ":0.0", 1);
     s = getenv("DISPLAY");
     printf("Pointing xterm DISPLAY: %s\n\n", s);
+    
     while(1){
+        
         printf("$> ");
-        if (scanf("%s", command) < 0)
+        if (!fgets(command, COMM_LEN, stdin))
             print_err("Error: could Not take input from stdin");
-        if (command == "\n")
+        if (command[0] == '\n' || command[0] == 0x0){
             continue;
-        if (strcmp(command, "echo") == 0){
+        }
+        if (strcmp(command, "echo\n") == 0){
+            int efd[2];
+            if (pipe(efd) < 0)
+                print_err("Error piping echo descriptors");
             printf("Initiating echo client in a seperate xterm window..\n");
             if ((pid = fork()) == 0){
-                if (execlp("/usr/bin/xterm", "xterm", "-e", "./bin/echocli", argv[1], argv[2], NULL) < 0)
+                close(efd[0]);
+                char dis[10];
+                snprintf(dis, sizeof(dis), "%d", efd[1]);
+                if (execlp("/usr/bin/xterm", "xterm", "-e", "./bin/echocli", argv[1], argv[2], dis, NULL) < 0)
                     print_err("Error: could not create echo client");
             }
-        }
-        else if (strcmp(command, "time") == 0){
-            printf("Initiating time client in a seperate xterm window..\n");
-            if ((pid = fork()) == 0){
-                if (execlp("/usr/bin/xterm", "xterm", "-e", "./bin/timecli", argv[1], argv[3], NULL) < 0)
-                    print_err("Error: could not create timeclient");
+            else{
+                close(efd[1]);
+                pthread_t tid;
+                if (pthread_create(&tid, NULL,(void *) monitor_child, (void*)&efd[0]) < 0){
+                    printf("Could not create echo child monitor service: thread err");
+                    continue;                 
+                }
+                pthread_detach(tid);
+                while (waitpid(-1, NULL, WNOHANG) > 0);
             }
         }
-        else if (strcmp(command, "quit") == 0){
+        else if (strcmp(command, "time\n") == 0){
+            int tfd[2];
+            if (pipe(tfd) < 0)
+                print_err("Error piping time descriptors");
+            printf("Initiating time client in a seperate xterm window..\n");
+            if ((pid = fork()) == 0){
+                close(tfd[0]);
+                char dis[10];
+                snprintf(dis, sizeof(dis), "%d", tfd[1]);
+                if (execlp("/usr/bin/xterm", "xterm", "-e", "./bin/timecli", argv[1], argv[3], dis, NULL) < 0)
+                    print_err("Error: could not create timeclient");
+            }
+            else{
+                close(tfd[1]);
+                pthread_t tid;
+                if (pthread_create(&tid, NULL,(void *) monitor_child, (void*)&tfd[0]) < 0){
+                    printf("Could not create time child monitor service: thread err");
+                    continue;                 
+                }
+                pthread_detach(tid);
+                while (waitpid(-1, NULL, WNOHANG) > 0);
+            }
+        }
+        else if (strcmp(command, "quit\n") == 0){
             print_err("Bye!");
         }
         else

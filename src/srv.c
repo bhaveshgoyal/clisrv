@@ -77,7 +77,13 @@ int main(int argc, char **argv){
     char buf[MAXLINE + 1];
     ssize_t n;
     int i = 0;
-
+    int timeclis[MAX_CLIENTS];
+    
+    for (i = 0; i < MAX_CLIENTS; i++) 
+    {
+        timeclis[i] = 0;
+    }
+    
     fd_set readfs;
 
 
@@ -114,11 +120,28 @@ int main(int argc, char **argv){
         FD_ZERO(&readfs);
         FD_SET(echo_master, &readfs);
         FD_SET(time_master, &readfs);
+        maxfd = max(echo_master, time_master);
+        for (i = 0 ; i < MAX_CLIENTS; i++){
+            int sd = timeclis[i];
+            if(sd > 0)
+                FD_SET( sd , &readfs);    
+            if(sd > maxfd)
+                maxfd = sd;
+        }
+
         status = select(maxfd+1, &readfs, NULL, NULL, NULL);
         if (status < 0)
             err_sys("Invalid Socket Select");
         if (FD_ISSET(time_master, &readfs)){
             time_conn = Accept(time_master, (SA *)NULL, NULL);
+            
+             for (i = 0; i < MAX_CLIENTS; i++) {
+                if( timeclis[i] == 0 ){
+                    timeclis[i] = time_conn;
+                    break;
+                }
+            }
+
             struct sockaddr_in sockaddr;
             socklen_t len = sizeof(sockaddr);
 
@@ -137,6 +160,7 @@ int main(int argc, char **argv){
         }
         if (FD_ISSET(echo_master, &readfs)){
             echo_conn = Accept(echo_master, (SA *)NULL, NULL);
+            
             struct sockaddr_in sockaddr;
             socklen_t len = sizeof(sockaddr);
 
@@ -153,6 +177,25 @@ int main(int argc, char **argv){
             }
             pthread_detach(tid);
         }
+
+        for (i = 0; i < MAX_CLIENTS; i++){
+            int sd = timeclis[i];
+            if (FD_ISSET( sd , &readfs)) {
+                int valread;
+                char buffer[1024];
+                if ((valread = read( sd , buffer, 1024)) == 0){
+                    struct sockaddr_in sockaddr;
+                    socklen_t len = sizeof(sockaddr);
+                    getpeername(sd, (struct sockaddr*)&sockaddr, &len);
+                    char ip[HOSTNAME_SIZE];
+                    inet_ntop(AF_INET, &sockaddr.sin_addr, ip, sizeof(ip));
+                    printf("Time Client disconnected: %s\n", ip);
+                    close(sd);
+                    timeclis[i] = 0;
+                }
+            }
+        }
+
     }
 
     return 0;

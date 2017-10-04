@@ -17,15 +17,15 @@ srv:
 
 cli:
 	rm -rf ./bin/cli
-	${CC} ${CFLAGS} -v -o bin/cli src/cli.c ${LIBS}
+	${CC} ${CFLAGS}  -o bin/cli src/cli.c ${LIBS}
 
 echocli:
 	rm -rf ./bin/echocli
-	${CC} ${CFLAGS} -v -o bin/echocli src/echocli.c ${LIBS}
+	${CC} ${CFLAGS}  -o bin/echocli src/echocli.c ${LIBS}
 
 timecli:
 	rm -rf ./bin/timecli
-	${CC} ${CFLAGS} -v -o bin/timecli src/timecli.c ${LIBS}
+	${CC} ${CFLAGS}  -o bin/timecli src/timecli.c ${LIBS}
 
 clean:
 	rm -rv bin/*

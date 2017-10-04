@@ -4,7 +4,8 @@
 int main(int argc, char **argv){
 	int sockfd, n;
 	char recvline[MAXLINE + 1], sendline[MAXLINE + 1];
-	struct sockaddr_in servaddr;
+	char msg[MAXLINE + 1];
+    struct sockaddr_in servaddr;
     fd_set readfs;
 
 
@@ -26,6 +27,16 @@ int main(int argc, char **argv){
 
     if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
         err_sys("connect error");
+
+    struct sockaddr_in local_addr;
+    int addr_size = sizeof(local_addr);
+    getsockname(sockfd, (struct sockaddr *)&local_addr, &addr_size);
+    int dis = (int)strtol(argv[3], NULL, 10);
+
+    sprintf(msg, "Echo client: connection established at port %d\n", ntohs(local_addr.sin_port));
+    if (write(dis, msg, strlen(msg)) < 0){
+        printf("error: could not write to parent descriptor\n");
+    }
 
     FD_ZERO(&readfs);
     FD_SET(sockfd, &readfs);
@@ -51,6 +62,10 @@ int main(int argc, char **argv){
         }
     }
     close(sockfd);
+    sprintf(msg, "Echo client: connection terminated at port %d\n", ntohs(local_addr.sin_port));
+    if (write(dis, msg, strlen(msg)) < 0){
+        printf("error: could not write to parent descriptor\n");
+    }
     return 0;
 
 }
