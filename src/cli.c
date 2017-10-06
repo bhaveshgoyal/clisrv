@@ -24,7 +24,7 @@ void sig_handler(int sig)
 {
     pid_t pid;
     int status;
-    while ((pid = waitpid(-1, &status, WNOHANG) > 0))
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
         printf("Child process %d terminated: SIGCHLD received\n", pid);
     printf("$> ");
     return;
