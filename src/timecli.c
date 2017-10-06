@@ -18,41 +18,43 @@ int main(int argc, char **argv){
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons((int) strtol(argv[2], (char **)NULL, 10));
-	
-    if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) < 0){
-			err_sys("Can't translate Network IPs");
-	}
 
-	if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
+    if (inet_pton(AF_INET, argv[1], &servaddr.sin_addr) < 0){
+        err_sys("Can't translate Network IPs");
+    }
+
+    if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
         err_sys("connect error");
 
-//    fp = fopen("/tmp/timeconn","w");
-//    fputc('1', fp);
-//    fclose(fp);
+    //    fp = fopen("/tmp/timeconn","w");
+    //    fputc('1', fp);
+    //    fclose(fp);
     struct sockaddr_in local_addr;
     int addr_size = sizeof(local_addr);
-    getsockname(sockfd, (struct sockaddr *)&local_addr, &addr_size);
-    int dis = (int)strtol(argv[3], NULL, 10);
+    int dis = 1;
+    if (argc > 3)
+        dis = (int)strtol(argv[3], NULL, 10);
 
+    getsockname(sockfd, (struct sockaddr *)&local_addr, &addr_size);
     sprintf(msg, "Time client: connection established at port %d\n", ntohs(local_addr.sin_port));
     if (write(dis, msg, strlen(msg)) < 0){
         printf("error: could not write to parent descriptor\n");
     }
     while((n = read(sockfd, recvline, MAXLINE)) > 0){
-      //  recvline[n] = 0;
+        //  recvline[n] = 0;
         fputs(recvline, stdout);
-   //     fputs(recvline, argv[3]);
+        //     fputs(recvline, argv[3]);
     }
     printf("Server connection closed. Host went down\n");
     close(sockfd);
-	fflush(stdout);
+    fflush(stdout);
     sprintf(msg, "Time client: connection terminated at port %d\n", ntohs(local_addr.sin_port));
     if (write(dis, msg, strlen(msg)) < 0){
         printf("error: could not write to parent descriptor\n");
     }
-//    fp = fopen("/tmp/timeconn","w");
-//    fputc('0', fp);
-//    fclose(fp);
+    //    fp = fopen("/tmp/timeconn","w");
+    //    fputc('0', fp);
+    //    fclose(fp);
     return 0;
 
 }
