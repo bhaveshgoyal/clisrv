@@ -1,12 +1,12 @@
 
 CC = gcc
 
-LIBS = -lresolv -lpthread\
-	/home/bhavesh/Desktop/CSE533/hw1/libs/unpv13e/libunp.a\
-	
+LIBS = -lresolv -lnsl -lsocket -lpthread\
+		/home/courses/cse533/Stevens/unpv13e_solaris2.10/libunp.a\
+
 FLAGS = -g -O2
 
-CFLAGS = ${FLAGS} -I/home/bhavesh/Desktop/CSE533/hw1/libs/unpv13e/lib
+CFLAGS = ${FLAGS} -I/home/courses/cse533/Stevens/unpv13e_solaris2.10/lib
 
 all: cli srv echocli timecli
 
