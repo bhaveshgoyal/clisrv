@@ -1,3 +1,2 @@
-make cli echocli timecli > /dev/null
-setenv PATH "./bin/:$PATH" > /dev/null
+make cli echocli timecli > outcli.log
 ./bin/cli $1 $2 $3

@@ -28,6 +28,8 @@ int main(int argc, char **argv){
     if (connect(sockfd, (SA *) &servaddr, sizeof(servaddr)) < 0)
         err_sys("connect error");
 
+    printf("Welcome to Echo Client. Type anything to get an echo reply back from server\n");
+    
     struct sockaddr_in local_addr;
     int addr_size = sizeof(local_addr);
     getsockname(sockfd, (struct sockaddr *)&local_addr, &addr_size);
@@ -40,7 +42,6 @@ int main(int argc, char **argv){
     if (write(dis, msg, strlen(msg)) < 0){
         printf("error: could not write to parent descriptor\n");
     }
-
     int maxfd = max(sockfd, STDIN_FILENO);
     while(1){
         FD_ZERO(&readfs);

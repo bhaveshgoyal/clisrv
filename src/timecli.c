@@ -29,6 +29,8 @@ int main(int argc, char **argv){
     //    fp = fopen("/tmp/timeconn","w");
     //    fputc('1', fp);
     //    fclose(fp);
+    printf("Welcome to Time Client\n");
+
     struct sockaddr_in local_addr;
     int addr_size = sizeof(local_addr);
     int dis = 1;
