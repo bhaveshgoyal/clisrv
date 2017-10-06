@@ -1,3 +1,2 @@
-make srv
-export PATH="./bin/:$PATH"
+make srv > outsrv.log
 ./bin/srv $1 $2

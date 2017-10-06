@@ -24,9 +24,8 @@ void sig_handler(int sig)
 {
     pid_t pid;
     int status;
-    while ((pid = waitpid(-1, &status, WNOHANG) > 0))
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
         printf("Child process %d terminated: SIGCHLD received\n", pid);
-    printf("$> ");
     return;
 }
 void  SIGhandler(int sig)
@@ -49,7 +48,6 @@ int main(int argc, char **argv){
     if (argc < 4){
         print_err("Illegal usage: incorrect number of arguments");
     }
-
     if (is_ip(argv[1])){
         if (inet_pton(AF_INET, argv[1], &inaddr) == 0)
             print_err("Could not resolve ip");
@@ -69,9 +67,11 @@ int main(int argc, char **argv){
 
     
     char * s = getenv("DISPLAY");
-    setenv("DISPLAY", ":0.0", 1);
+  //  setenv("DISPLAY", ":0.0", 1);
     s = getenv("DISPLAY");
-    printf("Pointing xterm DISPLAY: %s\n\n", s);
+    if (strlen(s) == 0)
+        err_sys("DISPLAY variable not set. Did you use -Y to forward host env");
+    printf("Pointing xterm DISPLAY: %s\n\n\n", s);
     
     while(1){
         
@@ -90,7 +90,7 @@ int main(int argc, char **argv){
                 close(efd[0]);
                 char dis[10];
                 snprintf(dis, sizeof(dis), "%d", efd[1]);
-                if (execlp("/usr/bin/xterm", "xterm", "-e", "./bin/echocli", argv[1], argv[2], dis, NULL) < 0)
+                if (execlp("/usr/openwin/bin/xterm", "xterm", "-e", "./bin/echocli", argv[1], argv[2], dis, NULL) < 0)
                     print_err("Error: could not create echo client");
             }
             else{
@@ -113,7 +113,7 @@ int main(int argc, char **argv){
                 close(tfd[0]);
                 char dis[10];
                 snprintf(dis, sizeof(dis), "%d", tfd[1]);
-                if (execlp("/usr/bin/xterm", "xterm", "-e", "./bin/timecli", argv[1], argv[3], dis, NULL) < 0)
+                if (execlp("/usr/openwin/bin/xterm", "xterm", "-e", "./bin/timecli", argv[1], argv[3], dis, NULL) < 0)
                     print_err("Error: could not create timeclient");
             }
             else{
