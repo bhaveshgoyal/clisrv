@@ -43,7 +43,7 @@ int main(int argc, char **argv){
 
     char command[COMM_LEN];
     struct hostent *he;
-    struct in_addr *inaddr;
+    struct in_addr *inaddr, **addr_list;
     pid_t pid;
     Signal(SIGCHLD, sig_handler);
     if (argc < 4){
@@ -55,14 +55,15 @@ int main(int argc, char **argv){
             print_err("Could not resolve ip");
         else{
             he = gethostbyaddr(&inaddr, sizeof(inaddr), AF_INET);
-            printf("Host by addr: %s\n", he->h_name);
+            printf("Server Hostname: %s\n", he->h_name);
         }
     }
     else{
         if ((he = gethostbyname(argv[1])) == NULL)
             print_err("Could Not resolve hostname");
         else{
-            printf("Host by name: %s\n", he->h_name);
+            addr_list = (struct in_addr **) he->h_addr_list;
+            printf("Server IP Address: %s\n", inet_ntoa(*addr_list[0]));
         }
     }
 

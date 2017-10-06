@@ -31,16 +31,18 @@ int main(int argc, char **argv){
     struct sockaddr_in local_addr;
     int addr_size = sizeof(local_addr);
     getsockname(sockfd, (struct sockaddr *)&local_addr, &addr_size);
-    int dis = (int)strtol(argv[3], NULL, 10);
+    int dis;
 
+    if (argc > 3){
+    dis = (int)strtol(argv[3], NULL, 10);
     sprintf(msg, "Echo client: connection established at port %d\n", ntohs(local_addr.sin_port));
     if (write(dis, msg, strlen(msg)) < 0){
         printf("error: could not write to parent descriptor\n");
     }
-
-    FD_ZERO(&readfs);
-    FD_SET(sockfd, &readfs);
-    FD_SET(STDIN_FILENO, &readfs);
+    }
+ //   FD_ZERO(&readfs);
+//    FD_SET(sockfd, &readfs);
+//    FD_SET(STDIN_FILENO, &readfs);
     int maxfd = max(sockfd, STDIN_FILENO);
     while(1){
         FD_ZERO(&readfs);
@@ -51,20 +53,30 @@ int main(int argc, char **argv){
             err_sys("Invalid Select");
         if (FD_ISSET(sockfd, &readfs)){
             if (Readline(sockfd, recvline, MAXLINE) == 0){
-                printf("Server connection closed. Host went down\n");
+                printf("Server connection closed..\n");
                 break;
             }
             Fputs(recvline, stdout);
         }
         else if (FD_ISSET(STDIN_FILENO, &readfs)){
-            Fgets(sendline, MAXLINE, stdin);
-            Write(sockfd, sendline, strlen(sendline));
+            if (Readline(STDIN_FILENO, sendline, MAXLINE) == 0){
+                printf("EOF encountered. Closing connection..\n");
+                Shutdown(sockfd, SHUT_WR);
+                FD_CLR(STDIN_FILENO, &readfs);
+                continue;
+            //    break;
+            }
+            else
+                Write(sockfd, sendline, strlen(sendline));
+         //   Fgets(sendline, MAXLINE, stdin);
         }
     }
     close(sockfd);
+    if (argc > 3){
     sprintf(msg, "Echo client: connection terminated at port %d\n", ntohs(local_addr.sin_port));
     if (write(dis, msg, strlen(msg)) < 0){
         printf("error: could not write to parent descriptor\n");
+    }
     }
     return 0;
 
